@@ -1,0 +1,59 @@
+CODE lambda:
+# import the JSON utility package
+import json
+# import the Python math library
+import math
+
+# import the AWS SDK (for Python the package name is boto3)
+import boto3
+# import two packages to help us with dates and date formatting
+from time import gmtime, strftime
+
+# create a DynamoDB object using the AWS SDK
+dynamodb = boto3.resource('dynamodb')
+# use the DynamoDB object to select our table
+table = dynamodb.Table('PowerOfMathDatabase')
+# store the current time in a human readable format in a variable
+now = strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime())
+// Import the AWS SDK
+const AWS = require('aws-sdk');
+
+// Define the Lambda handler function
+exports.handler = async (event, context) => {
+  try {
+    // Extract the data from the event object
+    const { name, tx1, tx2 } = event;
+
+    // Calculate the average of the two numbers
+    const average = (parseFloat(tx1) + parseFloat(tx2)) / 2;
+
+    // Store the current time in a variable
+    const now = new Date().toISOString();
+    // Create a DynamoDB put operation to save the data and time
+    const params = {
+      TableName: 'student',
+      Item: {
+        ID: average.toString(),
+        Name: name,
+        TX1: parseFloat(tx1),
+        TX2: parseFloat(tx2),
+        Average: average,
+        LatestGreetingTime: now
+      }
+    };
+    // Save the data and time to the DynamoDB table
+    await docClient.put(params).promise();
+
+    // Return the result as a response
+    return {
+      statusCode: 200,
+      body: JSON.stringify(`The average is ${average}`)
+    };
+  } catch (error) {
+    // Handle any errors and return an error response
+    return {
+      statusCode: 500,
+      body: JSON.stringify('An error occurred')
+    };
+  }
+};

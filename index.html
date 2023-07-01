@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý sinh viên</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        form input[type="text"], form input[type="number"], form input[type="password"] {
+            width: 200px;
+            padding: 5px;
+            margin-right: 10px;
+        }
+        form input[type="submit"] {
+            padding: 5px 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Trang quản lý sinh viên</h1>
+    <h2>Đăng nhập</h2>
+    <form id="login-form">
+        <input type="text" id="username" placeholder="Tên đăng nhập" required>
+        <input type="password" id="password" placeholder="Mật khẩu" required>
+        <input type="submit" value="Đăng nhập">
+    </form>
+    <hr>
+    <div id="student-management" style="display: none;">
+        <h2>Danh sách sinh viên</h2>
+        <form id="search-form">
+            <input type="text" id="search-input" placeholder="Tìm kiếm sinh viên">
+            <input type="submit" value="Tìm kiếm">
+        </form>
+        <table id="student-table">
+            <tr>
+                <th>SST</th>
+                <th>Tên sinh viên</th>
+                <th>Điểm Mạng máy tính TX1</th>
+                <th>Điểm Mạng máy tính TX2</th>
+                <th>Điểm trung bình</th>
+                <th>Thao tác</th>
+            </tr>
+        </table>
+        <h2>Thêm sinh viên</h2>
+        <form id="add-form">
+            <input type="text" id="name" placeholder="Tên" required>
+            <input type="number" id="tx1" placeholder="Điểm Mạng máy tính TX1" min="0" max="10" step="0.1" required>
+            <input type="number" id="tx2" placeholder="Điểm Mạng máy tính TX2" min="0" max="10" step="0.1" required>
+            <input type="submit" value="Thêm">
+        </form>
+    </div>
+    
+        <script>
+                        // Dữ liệu mẫu về sinh viên
+            var students;
+
+            if (localStorage.getItem('students')) {
+            // Lấy dữ liệu sinh viên từ Local Storage
+            students = JSON.parse(localStorage.getItem('students'));
+            } else {
+            // Nếu không có dữ liệu, sử dụng dữ liệu mẫu
+            students = [
+                { id: 1, name: 'Nguyễn Văn A', tx1: 8.5, tx2: 7.8 },
+                { id: 2, name: 'Trần Thị B', tx1: 9.2, tx2: 8.6 },
+                { id: 3, name: 'Lê Văn C', tx1: 7.9, tx2: 6.5 }
+            ];
+            }
+
+            // Hiển thị danh sách sinh viên
+            showStudents();
+
+            // Lưu trữ dữ liệu sinh viên vào Local Storage
+            function saveStudents() {
+            localStorage.setItem('students', JSON.stringify(students));
+            }
+
+            // Xóa sinh viên
+            function deleteStudent(id) {
+            var confirmation = confirm('Bạn có chắc chắn muốn xóa sinh viên này?');
+
+            if (confirmation) {
+                students = students.filter(function(student) {
+                return student.id !== id;
+                });
+
+                // Lưu trữ dữ liệu sinh viên sau khi xóa
+                saveStudents();
+
+                // Hiển thị danh sách sinh viên
+                showStudents();
+            }
+            }
+
+            // Thêm sinh viên
+            document.getElementById('add-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            var name = document.getElementById('name').value;
+            var tx1 = parseFloat(document.getElementById('tx1').value);
+            var tx2 = parseFloat(document.getElementById('tx2').value);
+
+            // Tạo đối tượng sinh viên mới
+            var newStudent = {
+                id: students.length + 1,
+                name: name,
+                tx1: tx1,
+                tx2: tx2
+            };
+
+            // Thêm sinh viên vào mảng
+            students.push(newStudent);
+
+            // Lưu trữ dữ liệu sinh viên sau khi thêm
+            saveStudents();
+
+            // Hiển thị danh sách sinh viên
+            showStudents();
+
+            // Reset form
+            document.getElementById('name').value = '';
+            document.getElementById('tx1').value = '';
+            document.getElementById('tx2').value = '';
+            });
+
+    
+            // Xác thực đăng nhập
+            document.getElementById('login-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+    
+                var username = document.getElementById('username').value;
+                var password = document.getElementById('password').value;
+    
+                // Kiểm tra thông tin đăng nhập
+                if (username === 'admin' && password === '123456') {
+                    // Hiển thị trang quản lý sinh viên nếu thông tin đăng nhập chính xác
+                    document.getElementById('login-form').style.display = 'none';
+                    document.getElementById('student-management').style.display = 'block';
+                    showStudents();
+                } else {
+                    // Hiển thị thông báo lỗi nếu thông tin đăng nhập không chính xác
+                    alert('Đăng nhập không thành công. Vui lòng kiểm tra lại tên đăng nhập và mật khẩu.');
+                }
+            });
+    
+            // Hiển thị danh sách sinh viên
+            function showStudents() {
+                var table = document.getElementById('student-table');
+                table.innerHTML = '';
+    
+                // Thêm dữ liệu sinh viên vào bảng
+                students.forEach(function(student) {
+                    var tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${student.id}</td>
+                        <td>${student.name}</td>
+                        <td>${student.tx1}</td>
+                        <td>${student.tx2}</td>
+                        <td>${calculateAverage(student)}</td>
+                        <td>
+                            <button onclick="editStudent(${student.id})">Sửa</button>
+                            <button onclick="deleteStudent(${student.id})">Xóa</button>
+                        </td>
+                    `;
+                    table.appendChild(tr);
+                });
+            }
+    
+            // Tính điểm trung bình
+            function calculateAverage(student) {
+                var average = (student.tx1 + student.tx2) / 2;
+                return average.toFixed(1);
+            }
+    
+            // Thêm sinh viên
+            document.getElementById('add-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+    
+                var name = document.getElementById('name').value;
+                var tx1 = parseFloat(document.getElementById('tx1').value);
+                var tx2 = parseFloat(document.getElementById('tx2').value);
+    
+                // Tạo đối tượng sinh viên mới
+                var newStudent = {
+                    id: students.length + 1,
+                    name: name,
+                    tx1: tx1,
+                    tx2: tx2
+                };
+    
+                // Thêm sinh viên vào mảng
+                students.push(newStudent);
+    
+                // Hiển thị danh sách sinh viên
+                showStudents();
+    
+                // Reset form
+                document.getElementById('name').value = '';
+                document.getElementById('tx1').value = '';
+                document.getElementById('tx2').value = '';
+            });
+    
+            // Sửa thông tin sinh viên
+            function editStudent(id) {
+                var student = students.find(function(student) {
+                    return student.id === id;
+                });
+    
+                if (student) {
+                    var newName = prompt('Nhập tên mới:', student.name);
+                    var newTx1 = parseFloat(prompt('Nhập điểm Mạng máy tính TX1 mới:', student.tx1));
+                    var newTx2 = parseFloat(prompt('Nhập điểm Mạng máy tính TX2 mới:', student.tx2));
+    
+                    if (newName && !isNaN(newTx1) && !isNaN(newTx2)) {
+                        student.name = newName;
+                        student.tx1 = newTx1;
+                        student.tx2 = newTx2;
+    
+                        // Hiển thị danh sách sinh viên
+                        showStudents();
+                    }
+                }
+            }
+    
+            // Xóa sinh viên
+            function deleteStudent(id) {
+                var confirmation = confirm('Bạn có chắc chắn muốn xóa sinh viên này?');
+    
+                if (confirmation) {
+                    students = students.filter(function(student) {
+                        return student.id !== id;
+                    });
+    
+                    // Hiển thị danh sách sinh viên
+                    showStudents();
+                }
+            }
+    
+            // Tìm kiếm sinh viên
+            document.getElementById('search-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+    
+                var searchInput = document.getElementById('search-input').value.toLowerCase();
+    
+                var filteredStudents = students.filter(function(student) {
+                    return student.name.toLowerCase().indexOf(searchInput) !== -1;
+                });
+    
+                // Hiển thị danh sách sinh viên tìm kiếm được
+                var table = document.getElementById('student-table');
+                table.innerHTML = '';
+    
+                filteredStudents.forEach(function(student) {
+                    var tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${student.id}</td>
+                        <td>${student.name}</td>
+                        <td>${student.tx1}</td>
+                        <td>${student.tx2}</td>
+                        <td>${calculateAverage(student)}</td>
+                        <td>
+                            <button onclick="editStudent(${student.id})">Sửa</button>
+                            <button onclick="deleteStudent(${student.id})">Xóa</button>
+                        </td>
+                    `;
+                    table.appendChild(tr);
+                });
+				// callAPI function that takes the base and exponent numbers as parameters
+                 var callAPI = (number1, number2) => {
+                 // instantiate a headers object
+                 var myHeaders = new Headers();
+                 // add content type header to object
+                 myHeaders.append("Content-Type", "application/json");
+                 // using built-in JSON utility package, turn object to string and store it in a variable
+                 var raw = JSON.stringify({ "number1": number1, "number2": number2 });
+                 // create a JSON object with parameters for API call and store it in a variable
+                 var requestOptions = {
+				 method: 'POST',
+				 headers: myHeaders,
+				 body: raw,
+				 redirect: 'follow'
+				 };
+				 // make API call with parameters and use promises to get response
+				 fetch("https://gzp8a2m34l.execute-api.us-east-2.amazonaws.com/dev", requestOptions)
+			    	.then(response => response.text())
+				 .then(result => alert(JSON.parse(result).body))
+				.catch(error => console.log('error', error));
+				};
+            });
+        </script>
+    </body>
+    </html>
